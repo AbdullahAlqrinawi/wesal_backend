@@ -10,15 +10,15 @@ const options: swaggerJsdoc.Options = {
       description: 'Wisal Backend API Documentation'
     },
     servers: [
-  {
-    url: `http://localhost:5000${env.apiPrefix}`,
-    description: 'Local development server'
-  },
-  {
-    url: `https://wesal-backend-nnyz.onrender.com${env.apiPrefix}`,
-    description: 'Production server'
-  }
-],
+      {
+        url: `http://localhost:5000${env.apiPrefix}`,
+        description: 'Local development server'
+      },
+      {
+        url: `https://wesal-backend-nnyz.onrender.com${env.apiPrefix}`,
+        description: 'Production server'
+      }
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
