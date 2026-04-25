@@ -1,0 +1,597 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountScope {
+  SYSTEM
+  MOH
+  HOSPITAL
+  DONOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum HospitalStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_APPROVAL
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RETURNED
+}
+
+enum ApprovalType {
+  HOSPITAL_REGISTRATION
+  CAMPAIGN
+  USER_ACCESS
+  DONOR_VERIFICATION
+  SETTINGS_CHANGE
+  OTHER
+}
+
+enum BloodType {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum InventoryStatus {
+  SUFFICIENT
+  LOW
+  CRITICAL
+}
+
+enum InventoryTransactionType {
+  DONATION_IN
+  REQUEST_OUT
+  ADJUSTMENT
+  EXPIRED_REMOVAL
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+enum BloodRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+  EMERGENCY
+}
+
+enum BloodRequestStatus {
+  PENDING
+  IN_PROGRESS
+  PARTIALLY_FULFILLED
+  FULFILLED
+  CANCELLED
+  REJECTED
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum AppointmentSource {
+  DONOR_APP
+  HOSPITAL_PORTAL
+  MOH_PORTAL
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum CampaignOrganizerType {
+  MOH
+  HOSPITAL
+}
+
+enum CampaignParticipantStatus {
+  REGISTERED
+  ATTENDED
+  DONATED
+  CANCELLED
+}
+
+enum NotificationType {
+  EMERGENCY
+  CAMPAIGN
+  REMINDER
+  SYSTEM
+  ACHIEVEMENT
+  APPROVAL
+  APPOINTMENT
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  SMS
+  EMAIL
+}
+
+enum RecipientType {
+  USER
+  DONOR
+  HOSPITAL
+}
+
+enum EligibilityStatus {
+  ELIGIBLE
+  TEMPORARILY_INELIGIBLE
+  PERMANENTLY_INELIGIBLE
+}
+
+enum MatchResponseStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  ARRIVED
+  DONATED
+}
+
+enum AuditActorType {
+  USER
+  DONOR
+  SYSTEM
+}
+
+model Role {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  scope       AccountScope
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  users           User[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  module      String
+  description String?
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model User {
+  id           String     @id @default(cuid())
+  fullName     String
+  email        String     @unique
+  phone        String?
+  passwordHash String
+  status       UserStatus @default(ACTIVE)
+  lastLoginAt  DateTime?
+  roleId       String
+  hospitalId   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  role     Role      @relation(fields: [roleId], references: [id])
+  hospital Hospital? @relation(fields: [hospitalId], references: [id])
+
+  createdApprovals  Approval[] @relation("SubmittedApprovals")
+  reviewedApprovals Approval[] @relation("ReviewedApprovals")
+
+  createdCampaigns Campaign[]        @relation("CampaignCreatedBy")
+  createdRequests  BloodRequest[]    @relation("RequestCreatedBy")
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  reports          Report[]
+  systemSettings   SystemSetting[]
+  hospitalSettings HospitalSetting[]
+}
+
+model Hospital {
+  id               String         @id @default(cuid())
+  name             String
+  city             String
+  region           String
+  address          String?
+  latitude         Decimal?       @db.Decimal(10, 7)
+  longitude        Decimal?       @db.Decimal(10, 7)
+  phone            String?
+  email            String?        @unique
+  status           HospitalStatus @default(PENDING_APPROVAL)
+  approvalStatus   ApprovalStatus @default(PENDING)
+  bloodBankEnabled Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  users                 User[]
+  inventories           BloodInventory[]
+  inventoryTransactions InventoryTransaction[]
+  bloodRequests         BloodRequest[]
+  appointmentSlots      AppointmentSlot[]
+  appointments          Appointment[]
+  campaigns             Campaign[]
+  notifications         Notification[]
+  hospitalSettings      HospitalSetting[]
+  submittedApprovals    Approval[]
+}
+
+model Donor {
+  id             String    @id @default(cuid())
+  fullName       String
+  nationalId     String    @unique
+  phone          String    @unique
+  email          String?   @unique
+  passwordHash   String
+  bloodType      BloodType
+  gender         String
+  birthDate      DateTime
+  city           String
+  region         String
+  address        String?
+  latitude       Decimal?  @db.Decimal(10, 7)
+  longitude      Decimal?  @db.Decimal(10, 7)
+  weightKg       Float?
+  isVerified     Boolean   @default(false)
+  isEligible     Boolean   @default(true)
+  lastDonationAt DateTime?
+  totalDonations Int       @default(0)
+  points         Int       @default(0)
+  livesSaved     Int       @default(0)
+  badgeLevel     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  medicalProfile       DonorMedicalProfile?
+  eligibilityChecks    DonorEligibilityCheck[]
+  appointments         Appointment[]
+  campaignParticipants CampaignParticipant[]
+  notifications        Notification[]
+  matches              RequestMatch[]
+  achievements         DonorAchievement[]
+  preferences          DonorPreference?
+  emergencyResponses   EmergencyResponse[]
+  auditLogs            AuditLog[]
+}
+
+model DonorMedicalProfile {
+  id                  String   @id @default(cuid())
+  donorId             String   @unique
+  chronicDiseases     String?
+  medications         String?
+  notes               String?
+  lastHemoglobinLevel Float?
+  bloodPressure       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  donor Donor @relation(fields: [donorId], references: [id], onDelete: Cascade)
+}
+
+model DonorEligibilityCheck {
+  id               String            @id @default(cuid())
+  donorId          String
+  status           EligibilityStatus
+  reason           String?
+  nextEligibleDate DateTime?
+  checkedByType    String
+  checkedByUserId  String?
+  checkedAt        DateTime          @default(now())
+
+  donor Donor @relation(fields: [donorId], references: [id], onDelete: Cascade)
+}
+
+model BloodInventory {
+  id               String          @id @default(cuid())
+  hospitalId       String
+  bloodType        BloodType
+  unitsAvailable   Int
+  minimumThreshold Int
+  status           InventoryStatus
+  lastUpdatedAt    DateTime        @default(now())
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@unique([hospitalId, bloodType])
+}
+
+model InventoryTransaction {
+  id              String                   @id @default(cuid())
+  hospitalId      String
+  bloodType       BloodType
+  type            InventoryTransactionType
+  units           Int
+  referenceType   String?
+  referenceId     String?
+  notes           String?
+  createdByUserId String?
+  createdAt       DateTime                 @default(now())
+
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+}
+
+model BloodRequest {
+  id              String               @id @default(cuid())
+  requestNumber   String               @unique
+  hospitalId      String
+  bloodType       BloodType
+  unitsRequested  Int
+  unitsFulfilled  Int                  @default(0)
+  priority        BloodRequestPriority
+  status          BloodRequestStatus   @default(PENDING)
+  caseType        String?
+  patientAge      Int?
+  notes           String?
+  requestedAt     DateTime             @default(now())
+  neededBy        DateTime?
+  createdByUserId String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  hospital           Hospital            @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  createdBy          User?               @relation("RequestCreatedBy", fields: [createdByUserId], references: [id])
+  matches            RequestMatch[]
+  emergencyResponses EmergencyResponse[]
+}
+
+model RequestMatch {
+  id               String              @id @default(cuid())
+  bloodRequestId   String
+  donorId          String
+  matchScore       Float
+  distanceKm       Float?
+  eligibilityValid Boolean             @default(true)
+  notificationSent Boolean             @default(false)
+  respondedAt      DateTime?
+  responseStatus   MatchResponseStatus @default(PENDING)
+  createdAt        DateTime            @default(now())
+
+  bloodRequest BloodRequest @relation(fields: [bloodRequestId], references: [id], onDelete: Cascade)
+  donor        Donor        @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  @@unique([bloodRequestId, donorId])
+}
+
+model EmergencyResponse {
+  id             String              @id @default(cuid())
+  bloodRequestId String
+  donorId        String
+  status         MatchResponseStatus
+  respondedAt    DateTime?
+  notes          String?
+  createdAt      DateTime            @default(now())
+
+  bloodRequest BloodRequest @relation(fields: [bloodRequestId], references: [id], onDelete: Cascade)
+  donor        Donor        @relation(fields: [donorId], references: [id], onDelete: Cascade)
+}
+
+model AppointmentSlot {
+  id          String   @id @default(cuid())
+  hospitalId  String
+  date        DateTime
+  startTime   String
+  endTime     String
+  capacity    Int
+  bookedCount Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hospital     Hospital      @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  donorId         String
+  hospitalId      String
+  slotId          String?
+  campaignId      String?
+  appointmentDate DateTime
+  startTime       String?
+  endTime         String?
+  status          AppointmentStatus @default(BOOKED)
+  source          AppointmentSource
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  donor    Donor            @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  hospital Hospital         @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  slot     AppointmentSlot? @relation(fields: [slotId], references: [id])
+  campaign Campaign?        @relation(fields: [campaignId], references: [id])
+}
+
+model Campaign {
+  id                  String                @id @default(cuid())
+  title               String
+  description         String?
+  organizerType       CampaignOrganizerType
+  organizerHospitalId String?
+  city                String
+  region              String
+  targetBloodTypes    Json?
+  targetUnits         Int?
+  collectedUnits      Int                   @default(0)
+  participantsCount   Int                   @default(0)
+  startDate           DateTime
+  endDate             DateTime
+  status              CampaignStatus        @default(DRAFT)
+  createdByUserId     String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  organizerHospital Hospital?             @relation(fields: [organizerHospitalId], references: [id])
+  createdBy         User?                 @relation("CampaignCreatedBy", fields: [createdByUserId], references: [id])
+  participants      CampaignParticipant[]
+  appointments      Appointment[]
+}
+
+model CampaignParticipant {
+  id         String                    @id @default(cuid())
+  campaignId String
+  donorId    String
+  status     CampaignParticipantStatus @default(REGISTERED)
+  createdAt  DateTime                  @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  donor    Donor    @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, donorId])
+}
+
+model Approval {
+  id                    String         @id @default(cuid())
+  type                  ApprovalType
+  entityType            String
+  entityId              String
+  priority              String?
+  status                ApprovalStatus @default(PENDING)
+  notes                 String?
+  submittedByUserId     String?
+  submittedByHospitalId String?
+  reviewedByUserId      String?
+  reviewedAt            DateTime?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  submittedBy         User?     @relation("SubmittedApprovals", fields: [submittedByUserId], references: [id])
+  submittedByHospital Hospital? @relation(fields: [submittedByHospitalId], references: [id])
+  reviewedBy          User?     @relation("ReviewedApprovals", fields: [reviewedByUserId], references: [id])
+}
+
+model Notification {
+  id            String              @id @default(cuid())
+  recipientType RecipientType
+  userId        String?
+  donorId       String?
+  hospitalId    String?
+  type          NotificationType
+  title         String
+  body          String
+  data          Json?
+  channel       NotificationChannel @default(IN_APP)
+  isRead        Boolean             @default(false)
+  readAt        DateTime?
+  createdAt     DateTime            @default(now())
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  donor    Donor?    @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  hospital Hospital? @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+}
+
+model DonorAchievement {
+  id        String   @id @default(cuid())
+  donorId   String
+  badgeKey  String
+  badgeName String
+  awardedAt DateTime @default(now())
+
+  donor Donor @relation(fields: [donorId], references: [id], onDelete: Cascade)
+}
+
+model DonorPreference {
+  id                       String   @id @default(cuid())
+  donorId                  String   @unique
+  language                 String   @default("ar")
+  theme                    String   @default("system")
+  pushNotificationsEnabled Boolean  @default(true)
+  emergencyAlertsEnabled   Boolean  @default(true)
+  biometricEnabled         Boolean  @default(false)
+  updatedAt                DateTime @updatedAt
+
+  donor Donor @relation(fields: [donorId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id                String   @id @default(cuid())
+  type              String
+  title             String
+  parameters        Json?
+  fileUrl           String?
+  generatedByUserId String?
+  generatedAt       DateTime @default(now())
+
+  generatedBy User? @relation(fields: [generatedByUserId], references: [id])
+}
+
+model SystemSetting {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  value           Json
+  updatedByUserId String?
+  updatedAt       DateTime @updatedAt
+
+  updatedBy User? @relation(fields: [updatedByUserId], references: [id])
+}
+
+model HospitalSetting {
+  id              String   @id @default(cuid())
+  hospitalId      String
+  key             String
+  value           Json
+  updatedByUserId String?
+  updatedAt       DateTime @updatedAt
+
+  hospital  Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  updatedBy User?    @relation(fields: [updatedByUserId], references: [id])
+
+  @@unique([hospitalId, key])
+}
+
+model AuditLog {
+  id         String         @id @default(cuid())
+  actorType  AuditActorType
+  userId     String?
+  donorId    String?
+  action     String
+  module     String
+  entityType String
+  entityId   String
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime       @default(now())
+
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  donor Donor? @relation(fields: [donorId], references: [id], onDelete: Cascade)
+}
