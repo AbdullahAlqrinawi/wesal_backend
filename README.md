@@ -10,19 +10,19 @@
 Backend API for **Wisal**, the national blood donation platform.
 
 ------------------------------------------------------------------------
-## 📖 Project Overview
+# 📖 Project Overview
 
-**Wisal** is a national blood donation platform designed to connect blood donors, hospitals, and the Ministry of Health through a centralized digital system.
+**Wisal** is a national digital platform developed as an official submission for the **Crown Prince Award** in Jordan. The platform aims to modernize and improve the blood donation ecosystem by connecting blood donors, hospitals, and the Ministry of Health through one centralized system.
 
-The platform streamlines the entire blood donation process, from finding eligible donors and launching donation campaigns to booking appointments and managing blood inventory. By leveraging smart donor matching based on blood type, location, and medical eligibility, Wisal helps hospitals reach suitable donors faster and improves emergency response times.
+Wisal provides an intelligent and secure solution for managing blood donation campaigns, hospital blood inventory, donor eligibility, appointment scheduling, and emergency blood requests. Using smart matching based on blood type, geographic location, and medical eligibility, the platform significantly reduces the time required to find suitable donors and helps save lives.
 
-The system consists of three main components:
+The project consists of three integrated systems:
 
-- 🩸 **Mobile Application** for blood donors.
-- 🏥 **Hospital Dashboard** for managing blood requests, campaigns, appointments, and blood inventory.
-- 🏛️ **Ministry Dashboard** for monitoring hospitals, approving campaigns, and viewing nationwide statistics.
+- 📱 **Mobile Application** for blood donors.
+- 🏥 **Hospital Management Dashboard** for blood inventory, campaigns, and donor management.
+- 🏛️ **Ministry of Health Dashboard** for monitoring hospitals, approving campaigns, and viewing nationwide statistics.
 
-The backend is built using **Node.js**, **Express.js**, **TypeScript**, **PostgreSQL**, and **Prisma ORM**, following a scalable RESTful architecture with JWT authentication, Zod validation, Swagger documentation, and secure API design.
+The backend is developed using **Node.js**, **Express.js**, **TypeScript**, **PostgreSQL**, and **Prisma ORM**, following modern RESTful API principles with JWT authentication, Zod validation, Swagger documentation, and scalable architecture.
 
 # ✨ Features
 
