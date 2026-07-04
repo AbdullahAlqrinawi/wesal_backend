@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white"/>
   <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma"/>
 </p>
-Backend API for **Wisal**, the national blood donation platform.
+Backend API for Wisal, the national blood donation platform.
 
 ------------------------------------------------------------------------
 # 📖 Project Overview
