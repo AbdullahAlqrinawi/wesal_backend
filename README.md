@@ -1,16 +1,12 @@
 # 🩸 Wisal Backend
 
-```{=html}
 <p align="center">
-```
-`<img src="https://img.shields.io/badge/Node.js-20+-339933?logo=node.js&logoColor=white"/>`{=html}
-`<img src="https://img.shields.io/badge/Express.js-4.x-000000?logo=express"/>`{=html}
-`<img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white"/>`{=html}
-`<img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white"/>`{=html}
-`<img src="https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma"/>`{=html}
-```{=html}
+  <img src="https://img.shields.io/badge/Node.js-20+-339933?logo=node.js&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Express.js-4.x-000000?logo=express"/>
+  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma"/>
 </p>
-```
 Backend API for **Wisal**, the national blood donation platform.
 
 ------------------------------------------------------------------------
