@@ -10,6 +10,19 @@
 Backend API for **Wisal**, the national blood donation platform.
 
 ------------------------------------------------------------------------
+## 📖 Project Overview
+
+**Wisal** is a national blood donation platform designed to connect blood donors, hospitals, and the Ministry of Health through a centralized digital system.
+
+The platform streamlines the entire blood donation process, from finding eligible donors and launching donation campaigns to booking appointments and managing blood inventory. By leveraging smart donor matching based on blood type, location, and medical eligibility, Wisal helps hospitals reach suitable donors faster and improves emergency response times.
+
+The system consists of three main components:
+
+- 🩸 **Mobile Application** for blood donors.
+- 🏥 **Hospital Dashboard** for managing blood requests, campaigns, appointments, and blood inventory.
+- 🏛️ **Ministry Dashboard** for monitoring hospitals, approving campaigns, and viewing nationwide statistics.
+
+The backend is built using **Node.js**, **Express.js**, **TypeScript**, **PostgreSQL**, and **Prisma ORM**, following a scalable RESTful architecture with JWT authentication, Zod validation, Swagger documentation, and secure API design.
 
 # ✨ Features
 
