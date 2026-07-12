@@ -256,7 +256,7 @@ PostgreSQL
 **Algorithm A**
 
 -   Abdullah AlQrinawi --- Backend, Integration, Admin Dashboard
--   Ahmed Homam --- Flutter, UI/UX
+-   Ahmed Hammam --- Flutter, UI/UX
 
 ------------------------------------------------------------------------
 
